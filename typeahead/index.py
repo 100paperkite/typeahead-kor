@@ -107,14 +107,3 @@ class SearchIndex:
         assert self.index, "Index is not loaded"
         return self.index[prefix]
         # return [t[1] for t in self.index[prefix]] # words only
-
-
-if __name__ == "__main__":
-    searchIndex = SearchIndex(5, 5)
-    searchIndex.make_index("../data/count/count_movie_rating.txt")
-    searchIndex.save("../data/index", "test_kor")
-    searchIndex.load("../data/index", "test_kor")
-    print("Search start...")
-    while True:
-        prefix = input()
-        print(searchIndex.search(prefix))
