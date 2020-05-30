@@ -1,7 +1,7 @@
 import click
 from typeahead import app
 from typeahead.index import SearchIndex
-from typeahead.counter import WordCounter
+from typeahead.word_counter import WordCounter
 
 
 @app.cli.command("word_count")
@@ -21,6 +21,6 @@ def index(input_path, output_dir, version):
     max_prefix_size = app.config.get("MAX_PREFIX_SIZE")
     max_heap_size = app.config.get("MAX_HEAP_SIZE")
 
-    searchIndex = SearchIndex(max_heap_size,max_prefix_size)
+    searchIndex = SearchIndex(max_heap_size, max_prefix_size)
     searchIndex.make_index(input_path)
     searchIndex.save(output_dir, version=version)

@@ -1,16 +1,25 @@
 from unittest.case import TestCase
-from typeahead import app
+from typeahead.app import app
 from typeahead.index import SearchIndex
-from os.path import abspath, dirname, join
 
 
 class TestAPI(TestCase):
-    def setUp(self) -> None:
-        index_dir = join(dirname(__file__),"data")
-        searchIndex = SearchIndex(2, 2)
-        searchIndex.load(index_dir,"test")
-        self.tester = app.test_client()
+    def setUp(self):
+        self.client = app.test_client()
 
-    def test_search(self):
-        result = self.tester.get("/search/p")
-        self.assertEqual(result,[(100, 'pi'), (88, 'project')])
+    def test_info(self):
+        answer = {
+            "version": "test",
+            "max_heap_size": 2,
+            "max_prefix_size": 2,
+        }
+        response = self.client.get("/")
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(answer, response.json)
+
+    def test_liveness(self):
+        response = self.client.get("/healthcheck")
+        self.assertEqual(200, response.status_code)
+
+    def test_update(self):
+        pass
