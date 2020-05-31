@@ -33,30 +33,20 @@ JONGSUNG_LIST = [' ', 'ㄱ', 'ㄲ', 'ㄳ', 'ㄴ', 'ㄵ', 'ㄶ', 'ㄷ', 'ㄹ', '�
                  'ㅆ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ']
 
 
-def convert(test_keyword):
-    split_keyword_list = list(test_keyword)
-    # print(split_keyword_list)
-
+def decompose_korean(test_keyword):
     result = list()
-    for keyword in split_keyword_list:
+    for keyword in list(test_keyword):
         # 한글 여부 check 후 분리
         if re.match('[가-힣]', keyword) is not None:
             char_code = ord(keyword) - BASE_CODE
             char1 = int(char_code / CHOSUNG)
             result.append(CHOSUNG_LIST[char1])
-            # print('초성 : {}'.format(CHOSUNG_LIST[char1]))
             char2 = int((char_code - (CHOSUNG * char1)) / JUNGSUNG)
             result.append(JUNGSUNG_LIST[char2])
-            # print('중성 : {}'.format(JUNGSUNG_LIST[char2]))
             char3 = int((char_code - (CHOSUNG * char1) - (JUNGSUNG * char2)))
-            if char3 == 0:
-                result.append('#')
-            else:
+            if char3 != 0:
                 result.append(JONGSUNG_LIST[char3])
-            # print('종성 : {}'.format(JONGSUNG_LIST[char3]))
-        elif re.match('[ㄱ-ㅎ]', keyword) is not None:
-            pass
-        else:
+        else: 
             result.append(keyword)
 
     return ''.join(result)

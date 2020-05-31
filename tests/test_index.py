@@ -1,55 +1,53 @@
 import time
-from os.path import dirname, abspath, join
-import unittest
+from os.path import dirname, join
 from unittest.case import TestCase
 from typeahead.index import SearchIndex
 
 
 class TestIndex(TestCase):
-    def setUp(self) -> None:
-        self.testIndex = SearchIndex(2, 2)  # data_dir, max_heap_size, max_prefix_size
+    def setUp(self):
+        self.testIndex = SearchIndex(max_heap_size=2, max_prefix_size=2)
+        data_path = join(dirname(__file__), "test_data/test_count.txt")
+        self.testIndex.make_index(data_path)
 
-    def test_make_index(self):
+    def test_make_correct_index(self):
         """
         Test if index can make its index according to max heap size & max prefix size
-        """
-        data_path = join(dirname(__file__), "data/test_count.txt")
-        self.testIndex.make_index(data_path)
-        """
+
         <test_count.txt>
         the 4507
         program 12
         project 88
         pi 100
         of 3731
-        ㄴㅏ# 200
-        ㅂㅣ#ㄴㅜ 88
-        ㅂㅣ#ㅁㅣㄹ 12
+        나 200
+        비누 88
+        비밀 12
+        a형 40
         """
         answer = {'t': [(4507, 'the')],
                   'th': [(4507, 'the')],
                   'p': [(100, 'pi'), (88, 'project')],
                   'pr': [(88, 'project'), (12, 'program')],
-                  'o': [(3731, 'of')], 'ㄴ': [(200, 'ㄴㅏ#')],
-                  'ㄴㅏ': [(200, 'ㄴㅏ#')],
-                  'ㅂ': [(88, 'ㅂㅣ#ㄴㅜ'), (12, 'ㅂㅣ#ㅁㅣㄹ')],
-                  'ㅂㅣ': [(88, 'ㅂㅣ#ㄴㅜ'), (12, 'ㅂㅣ#ㅁㅣㄹ')],}
+                  'o': [(3731, 'of')], 'ㄴ': [(200, '나')],
+                  'ㅂ': [(88, '비누'), (12, '비밀')],
+                  'ㅂㅣ': [(88, '비누'), (12, '비밀')],
+                  'a':[(40,'a형')], 'aㅎ':[(40,'a형')]}
 
         self.assertEqual(answer, self.testIndex.index)
 
     def test_search(self):
-        self.test_make_index()
         self.assertEqual(self.testIndex.search("p"), [(100, 'pi'), (88, 'project')])
         self.assertEqual(self.testIndex.search("k"), [])
+        self.assertEqual(self.testIndex.search("ㄴ"), [(200, '나')])
+        self.assertEqual(self.testIndex.search("비"), [(88, '비누'), (12, '비밀')])
 
     def test_binary(self):
         """
         Test if index can save & load its index in the binary format
         """
-        self.test_make_index()
-
         version = "test"
-        data_dir = join(dirname(__file__), "test")
+        data_dir = join(dirname(__file__), "test_data")
 
         start_time = time.time()
         self.testIndex.save(data_dir, version)
@@ -62,6 +60,3 @@ class TestIndex(TestCase):
 
         self.assertEqual(self.testIndex.index, testIndex.index)
 
-
-if __name__ == '__main__':
-    unittest.main()
