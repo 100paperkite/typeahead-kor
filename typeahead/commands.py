@@ -15,12 +15,12 @@ def word_count(input_path, output_path):
 
 @app.cli.command("index")
 @click.argument("input_path")
-@click.argument("output_dir")
-@click.argument("version")
-def index(input_path, output_dir, version):
-    max_prefix_size = app.config.get("MAX_PREFIX_SIZE")
-    max_heap_size = app.config.get("MAX_HEAP_SIZE")
-
-    searchIndex = SearchIndex(max_heap_size, max_prefix_size)
-    searchIndex.make_index(input_path)
-    searchIndex.save(output_dir, version=version)
+@click.argument("output_path")
+@click.argument("max_prefix_size")
+@click.argument("max_heap_size")
+def index(input_path, output_path, max_prefix_size, max_heap_size):
+    searchIndex = SearchIndex()
+    searchIndex.make_index(input_path=input_path,
+                           max_prefix_size=int(max_prefix_size),
+                           max_heap_size=int(max_heap_size))
+    searchIndex.save(output_path)
