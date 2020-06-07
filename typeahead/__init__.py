@@ -9,13 +9,13 @@ if os.environ.get('TYPEAHEAD_SETTINGS'):
 else:
     # use default
     path = os.path.dirname(__file__)
-    path = os.path.join(path, 'config.py')
+    path = os.path.join(path, 'config')
+    path = os.path.join(path, 'config-dev.py')
     if os.path.isfile(path):
-        app.config.from_object('typeahead.config.DevelopmentConfig')
+        app.config.from_pyfile(path)
     else:
         print('PLEASE SET A CONFIG FILE WITH TYPEAHEAD_SETTINGS OR '
               'PUT ONE AT typeahead/config.py')
         exit(-1)
 
-with app.app_context():
-    from . import commands
+app.config['JSON_AS_ASCII'] = False
