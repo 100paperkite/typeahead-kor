@@ -1,19 +1,16 @@
 import os
-from flask import request
+from flask import request, jsonify, Response
 from typeahead import app
 from typeahead.index import SearchIndex
+from typeahead.utils import get_newest_index_path, write_binary_index_element, decompose_korean
 
-max_heap_size = app.config.get("MAX_HEAP_SIZE")
-max_prefix_size = app.config.get("MAX_PREFIX_SIZE")
-version = app.config.get("VERSION")
-data_dir = app.config.get("INDEX_DIR")
-
-searchIndex = SearchIndex(max_heap_size, max_prefix_size)
+index_dir = app.config.get("INDEX_DIR")
+searchIndex = SearchIndex()
 
 
 @app.before_first_request
-def load_index():
-    searchIndex.load(data_dir, version)
+def load():
+    searchIndex.load(get_newest_index_path(index_dir))
 
 
 @app.route("/")
@@ -22,46 +19,53 @@ def info():
 
 
 @app.route("/search/<prefix>")
-def autocomplete(prefix):
-    return str(searchIndex.search(prefix))
+def search(prefix):
+    return jsonify(searchIndex.search(decompose_korean(prefix)))
 
 
 @app.route("/healthcheck")
 def healthcheck():
-    return "healthy"
+    return Response(status=200)
 
 
 @app.route("/admin/index/reload", methods=["POST"])
-def reload_index():
-    pass
+def reload():
+    searchIndex.load(get_newest_index_path(index_dir))
+    return Response(status=201)
 
 
-@app.route("/admin/index/<prefix>", methods=["POST", "DELETE"])
-def update_index(prefix):
+@app.route("/admin/index/<prefix>", methods=["POST"])
+def update(prefix):
     """
     Content-type : application/json
     Body:
-        { prefix : list of words to update }
+        { "words" : list of words to update }
     """
-    content = request.json
-    update_words = content[prefix][:max_heap_size]
-    # update
-    if request.method == "POST":
-        if update_words:
-            # 0 count indicates manual appending
-            searchIndex.index[prefix][:len(update_words)] = [(0, word) for word in update_words]
-        else:
-            searchIndex.index[prefix] = []  # remove all
-    # delete certain words from index
-    else:
-        searchIndex.index[prefix] = [item for item in searchIndex.index[prefix] if item[1] not in update_words]
+    prefix = decompose_korean(prefix)
+    word_list = request.json["words"][:searchIndex.max_heap_size]
+    searchIndex.update(prefix, word_list)
 
-    # file write
-    with open(os.path.join(data_dir, "update.bin"), "ab") as f:
-        encoded = prefix.encode()
-        f.write(bytes([len(encoded)]) + encoded + bytes([len(update_words)]))
-        for i, (count, word) in enumerate(searchIndex.index[prefix]):
-            encoded = word.encode()
-            f.write(bytes([len(encoded)]) + count.to_bytes(4, byteorder="little") + encoded)
+    increment_path = os.path.join(index_dir, searchIndex.version.split(".")[0])
+    increment_path = os.path.join(increment_path, "increment.bin")
+    with open(increment_path, "ab") as f:
+        write_binary_index_element(f, prefix, searchIndex.index[prefix])
 
-    return str(update_words)
+    return Response(status=201)
+
+
+@app.route("/admin/index/<prefix>", methods=["DELETE"])
+def delete(prefix):
+    """
+    Content-type : application/json
+    Body:
+        { "words" : list of words to update }
+    """
+    prefix = decompose_korean(prefix)
+    searchIndex.delete(prefix, request.json["words"])
+
+    increment_path = os.path.join(index_dir, searchIndex.version.split(".")[0])
+    increment_path = os.path.join(increment_path, "increment.bin")
+    with open(increment_path, "ab") as f:
+        write_binary_index_element(f, prefix, searchIndex.index[prefix])
+
+    return Response(status=200)
