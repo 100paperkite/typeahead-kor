@@ -1,6 +1,6 @@
 # typeahead-kor
 
-API for Autocomplete system
+API for Autocomplete system by flask
 
 python >= 3.6
 
@@ -28,7 +28,7 @@ make word_count input_path=[INPUT_DATA_FILE] output_path=[OUTPUT_WORDCOUNT_FILE]
                   max_prefix_size=[PREFIX_SIZE] max_heap_size=[HEAP_SIZE]
 ~~~
 
-## Run
+## Run API server
 ~~~sh
 make run PORT=[PORT_NUM]
 ~~~
