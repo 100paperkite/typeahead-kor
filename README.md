@@ -2,11 +2,13 @@
 
 API for Autocomplete system
 
+python >= 3.6
+
 ## Set Up
 ~~~
 make clean
 ~~~
-~~~
+~~~python
 # virtual environment
 make venv
 workon typeahead-kor
